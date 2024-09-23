@@ -1,4 +1,4 @@
-name: Install multiple programs
+name: Cl 
 
 on: [push, workflow_dispatch]
 
@@ -8,34 +8,18 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Install Chocolatey
-      run: Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-
-    - name: Install Programs via Chocolatey
-      run: |
-        choco install googlechrome -y
-        choco install git -y
-        choco install vscode -y
-        choco install 7zip -y
-        choco install nodejs -y
-
-    - name: Download Ngrok
+    - name: Download
       run: Invoke-WebRequest https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip -OutFile ngrok.zip
-
-    - name: Extract Ngrok
+    - name: Extract
       run: Expand-Archive ngrok.zip
-
-    - name: Auth Ngrok
+    - name: Auth
       run: .\ngrok\ngrok.exe authtoken $Env:NGROK_AUTH_TOKEN
       env:
         NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-
-    - name: Enable Remote Desktop
-      run: |
-        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
-        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
-        Set-LocalUser -Name "neto" -Password (ConvertTo-SecureString -AsPlainText "25456987" -Force)
-
-    - name: Create Ngrok Tunnel
+    - name: Enable TS
+      run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
+    - run: Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+    - run: Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
+    - run: Set-LocalUser -Name "neto" -Password (ConvertTo-SecureString -AsPlainText "25456987" -Force)
+    - name: Create Tunnel
       run: .\ngrok\ngrok.exe tcp 3389
